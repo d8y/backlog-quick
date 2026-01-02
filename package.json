@@ -31,8 +31,7 @@
       "tabs"
     ],
     "host_permissions": [
-      "https://*.backlog.com/*",
-      "https://*.backlog.jp/*"
+      "https://*.backlog.com/*"
     ]
   }
 }
