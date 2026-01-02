@@ -216,7 +216,7 @@ function IndexPopup() {
     const selectedProject = projects.find((p) => String(p.id) === selectedProjectId)
     if (!selectedProject || !space) return
 
-    // Store form data for content script to read (including screenshot)
+    // Store form data for content script to read (including screenshot and timestamp)
     await chrome.storage.local.set({
       backlogQuickFormData: {
         summary: title.trim() || null,
@@ -225,6 +225,7 @@ function IndexPopup() {
         priorityId: selectedPriorityId || null,
         assigneeId: selectedAssigneeId || null,
         screenshotDataUrl: screenshotDataUrl || null,
+        timestamp: Date.now(),
       },
     })
 
