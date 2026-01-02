@@ -14,7 +14,8 @@ export interface StorageData {
   defaults: StorageDefaults
 }
 
-const storage = new Storage({ area: "sync" })
+// Use local storage to prevent API key from syncing to other devices
+const storage = new Storage({ area: "local" })
 
 export const STORAGE_KEYS = {
   API_KEY: "apiKey",
