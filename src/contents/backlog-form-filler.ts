@@ -110,6 +110,7 @@ interface FormData {
   priorityId: string | null
   assigneeId: string | null
   screenshotDataUrl: string | null
+  timestamp: number
 }
 
 async function fillForm(): Promise<void> {
@@ -123,6 +124,12 @@ async function fillForm(): Promise<void> {
 
   // Clear the stored data immediately
   await chrome.storage.local.remove("backlogQuickFormData")
+
+  // Check if data is recent (within 5 seconds) - ensures it came from extension button
+  const MAX_AGE_MS = 5000
+  if (Date.now() - formData.timestamp > MAX_AGE_MS) {
+    return
+  }
 
   const { summary, description, issueTypeId, priorityId, assigneeId, screenshotDataUrl } = formData
 
