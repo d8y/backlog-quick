@@ -212,18 +212,23 @@ function IndexPopup() {
     chrome.runtime.openOptionsPage()
   }
 
-  const openBacklogIssuePage = useCallback(() => {
+  const openBacklogIssuePage = useCallback(async () => {
     const selectedProject = projects.find((p) => String(p.id) === selectedProjectId)
     if (!selectedProject || !space) return
 
-    const params = new URLSearchParams()
-    if (title.trim()) params.set("summary", title.trim())
-    if (description.trim()) params.set("description", description.trim())
-    if (selectedIssueTypeId) params.set("issueTypeId", selectedIssueTypeId)
-    if (selectedPriorityId) params.set("priorityId", selectedPriorityId)
-    if (selectedAssigneeId) params.set("assigneeId", selectedAssigneeId)
+    // Store form data for content script to read (including screenshot)
+    await chrome.storage.local.set({
+      backlogQuickFormData: {
+        summary: title.trim() || null,
+        description: description.trim() || null,
+        issueTypeId: selectedIssueTypeId || null,
+        priorityId: selectedPriorityId || null,
+        assigneeId: selectedAssigneeId || null,
+        screenshotDataUrl: screenshotDataUrl || null,
+      },
+    })
 
-    const url = `https://${space}/add/${selectedProject.projectKey}?${params.toString()}`
+    const url = `https://${space}/add/${selectedProject.projectKey}`
     chrome.tabs.create({ url })
   }, [
     projects,
@@ -234,6 +239,7 @@ function IndexPopup() {
     selectedIssueTypeId,
     selectedPriorityId,
     selectedAssigneeId,
+    screenshotDataUrl,
   ])
 
   if (loading) {
