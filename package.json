@@ -9,10 +9,11 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@plasmohq/storage": "^1.13.0",
     "plasmo": "^0.90.5",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@plasmohq/storage": "^1.13.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",
