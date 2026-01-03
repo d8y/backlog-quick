@@ -327,8 +327,8 @@ function IndexPopup() {
   }
 
   return (
-    <div className="plasmo-w-80 plasmo-p-4">
-      <div className="plasmo-flex plasmo-items-center plasmo-justify-between plasmo-mb-4">
+    <div className="plasmo-w-80 plasmo-h-[500px] plasmo-flex plasmo-flex-col">
+      <div className="plasmo-flex plasmo-items-center plasmo-justify-between plasmo-p-4 plasmo-pb-2">
         <h1 className="plasmo-text-lg plasmo-font-bold plasmo-text-gray-800">Backlog Quick</h1>
         <button
           onClick={openOptions}
@@ -339,7 +339,7 @@ function IndexPopup() {
         </button>
       </div>
 
-      <div className="plasmo-space-y-3">
+      <div className="plasmo-flex-1 plasmo-overflow-y-auto plasmo-px-4 plasmo-space-y-3">
         <div>
           <button
             onClick={handleCaptureScreenshot}
@@ -478,18 +478,25 @@ function IndexPopup() {
           <label className="plasmo-block plasmo-text-sm plasmo-font-medium plasmo-text-gray-700 plasmo-mb-1">
             優先度 *
           </label>
-          <select
-            value={selectedPriorityId}
-            onChange={(e) => setSelectedPriorityId(e.target.value)}
-            className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
-          >
-            <option value="">選択してください</option>
-            {priorities.map((priority) => (
-              <option key={priority.id} value={String(priority.id)}>
-                {priority.name}
-              </option>
-            ))}
-          </select>
+          <div className="plasmo-relative">
+            <select
+              value={selectedPriorityId}
+              onChange={(e) => setSelectedPriorityId(e.target.value)}
+              className="plasmo-w-full plasmo-appearance-none plasmo-px-3 plasmo-py-2 plasmo-pr-10 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm plasmo-bg-white focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
+            >
+              <option value="">選択してください</option>
+              {priorities.map((priority) => (
+                <option key={priority.id} value={String(priority.id)}>
+                  {priority.name}
+                </option>
+              ))}
+            </select>
+            <div className="plasmo-pointer-events-none plasmo-absolute plasmo-inset-y-0 plasmo-right-0 plasmo-flex plasmo-items-center plasmo-pr-3">
+              <svg className="plasmo-h-4 plasmo-w-4 plasmo-text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {users.length > 0 && (
@@ -535,24 +542,24 @@ function IndexPopup() {
         {errorMessage && (
           <p className="plasmo-text-sm plasmo-text-red-600">{errorMessage}</p>
         )}
+      </div>
 
-        <div className="plasmo-space-y-2">
-          <button
-            onClick={handleSubmit}
-            disabled={submitStatus === "submitting"}
-            className="plasmo-w-full plasmo-px-4 plasmo-py-2 plasmo-bg-blue-600 plasmo-text-white plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-blue-700 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
-          >
-            {submitStatus === "submitting" ? "作成中..." : "課題を作成"}
-          </button>
+      <div className="plasmo-p-4 plasmo-pt-2 plasmo-bg-white plasmo-space-y-2" style={{ boxShadow: "0 -2px 8px rgba(0,0,0,0.06)" }}>
+        <button
+          onClick={handleSubmit}
+          disabled={submitStatus === "submitting"}
+          className="plasmo-w-full plasmo-px-4 plasmo-py-2 plasmo-bg-blue-600 plasmo-text-white plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-blue-700 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
+        >
+          {submitStatus === "submitting" ? "作成中..." : "課題を作成"}
+        </button>
 
-          <button
-            onClick={openBacklogIssuePage}
-            disabled={!selectedProjectId}
-            className="plasmo-w-full plasmo-px-4 plasmo-py-2 plasmo-bg-gray-100 plasmo-text-gray-700 plasmo-rounded-md plasmo-font-medium plasmo-border plasmo-border-gray-300 hover:plasmo-bg-gray-200 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
-          >
-            Backlog画面で作成
-          </button>
-        </div>
+        <button
+          onClick={openBacklogIssuePage}
+          disabled={!selectedProjectId}
+          className="plasmo-w-full plasmo-px-4 plasmo-py-2 plasmo-bg-gray-100 plasmo-text-gray-700 plasmo-rounded-md plasmo-font-medium plasmo-border plasmo-border-gray-300 hover:plasmo-bg-gray-200 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
+        >
+          Backlog画面で作成
+        </button>
       </div>
     </div>
   )
