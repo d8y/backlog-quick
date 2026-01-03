@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useStorage } from "@plasmohq/storage/hook"
 import { Storage } from "@plasmohq/storage"
+import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from "@headlessui/react"
 
 import { BacklogAPIClient } from "~lib/backlog-api"
 import type {
@@ -60,6 +61,32 @@ function IndexPopup() {
 
   const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null)
   const [capturingScreenshot, setCapturingScreenshot] = useState(false)
+
+  const [projectQuery, setProjectQuery] = useState("")
+  const [issueTypeQuery, setIssueTypeQuery] = useState("")
+  const [assigneeQuery, setAssigneeQuery] = useState("")
+
+  const filteredProjects = useMemo(() => {
+    if (projectQuery === "") return projects
+    const query = projectQuery.toLowerCase()
+    return projects.filter(
+      (project) =>
+        project.name.toLowerCase().includes(query) ||
+        project.projectKey.toLowerCase().includes(query)
+    )
+  }, [projects, projectQuery])
+
+  const filteredIssueTypes = useMemo(() => {
+    if (issueTypeQuery === "") return issueTypes
+    const query = issueTypeQuery.toLowerCase()
+    return issueTypes.filter((type) => type.name.toLowerCase().includes(query))
+  }, [issueTypes, issueTypeQuery])
+
+  const filteredUsers = useMemo(() => {
+    if (assigneeQuery === "") return users
+    const query = assigneeQuery.toLowerCase()
+    return users.filter((user) => user.name.toLowerCase().includes(query))
+  }, [users, assigneeQuery])
 
   const isConfigured = Boolean(apiKey && space)
 
@@ -370,18 +397,41 @@ function IndexPopup() {
           <label className="plasmo-block plasmo-text-sm plasmo-font-medium plasmo-text-gray-700 plasmo-mb-1">
             プロジェクト *
           </label>
-          <select
-            value={selectedProjectId}
-            onChange={(e) => handleProjectChange(e.target.value)}
-            className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
-          >
-            <option value="">選択してください</option>
-            {projects.map((project) => (
-              <option key={project.id} value={String(project.id)}>
-                {project.projectKey} - {project.name}
-              </option>
-            ))}
-          </select>
+          <Combobox value={selectedProjectId} onChange={handleProjectChange} onClose={() => setProjectQuery("")}>
+            <div className="plasmo-relative">
+              <ComboboxInput
+                className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
+                displayValue={(id: string) => {
+                  const project = projects.find((p) => String(p.id) === id)
+                  return project ? `${project.projectKey} - ${project.name}` : ""
+                }}
+                onChange={(e) => setProjectQuery(e.target.value)}
+                placeholder="プロジェクトを検索..."
+              />
+              <ComboboxButton className="plasmo-absolute plasmo-inset-y-0 plasmo-right-0 plasmo-flex plasmo-items-center plasmo-pr-3">
+                <svg className="plasmo-h-4 plasmo-w-4 plasmo-text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                </svg>
+              </ComboboxButton>
+              <ComboboxOptions className="plasmo-absolute plasmo-z-10 plasmo-mt-1 plasmo-max-h-48 plasmo-w-full plasmo-overflow-auto plasmo-rounded-md plasmo-bg-white plasmo-py-1 plasmo-shadow-lg plasmo-ring-1 plasmo-ring-black/5 plasmo-text-sm">
+                {filteredProjects.length === 0 ? (
+                  <div className="plasmo-relative plasmo-cursor-default plasmo-select-none plasmo-py-2 plasmo-px-3 plasmo-text-gray-500">
+                    該当なし
+                  </div>
+                ) : (
+                  filteredProjects.map((project) => (
+                    <ComboboxOption
+                      key={project.id}
+                      value={String(project.id)}
+                      className="plasmo-group plasmo-relative plasmo-cursor-default plasmo-select-none plasmo-py-2 plasmo-pl-3 plasmo-pr-9 data-[focus]:plasmo-bg-blue-600 data-[focus]:plasmo-text-white plasmo-text-gray-900"
+                    >
+                      {project.projectKey} - {project.name}
+                    </ComboboxOption>
+                  ))
+                )}
+              </ComboboxOptions>
+            </div>
+          </Combobox>
         </div>
 
         {issueTypes.length > 0 && (
@@ -389,18 +439,38 @@ function IndexPopup() {
             <label className="plasmo-block plasmo-text-sm plasmo-font-medium plasmo-text-gray-700 plasmo-mb-1">
               課題種別 *
             </label>
-            <select
-              value={selectedIssueTypeId}
-              onChange={(e) => setSelectedIssueTypeId(e.target.value)}
-              className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
-            >
-              <option value="">選択してください</option>
-              {issueTypes.map((type) => (
-                <option key={type.id} value={String(type.id)}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
+            <Combobox value={selectedIssueTypeId} onChange={setSelectedIssueTypeId} onClose={() => setIssueTypeQuery("")}>
+              <div className="plasmo-relative">
+                <ComboboxInput
+                  className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
+                  displayValue={(id: string) => issueTypes.find((t) => String(t.id) === id)?.name || ""}
+                  onChange={(e) => setIssueTypeQuery(e.target.value)}
+                  placeholder="課題種別を検索..."
+                />
+                <ComboboxButton className="plasmo-absolute plasmo-inset-y-0 plasmo-right-0 plasmo-flex plasmo-items-center plasmo-pr-3">
+                  <svg className="plasmo-h-4 plasmo-w-4 plasmo-text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </ComboboxButton>
+                <ComboboxOptions className="plasmo-absolute plasmo-z-10 plasmo-mt-1 plasmo-max-h-48 plasmo-w-full plasmo-overflow-auto plasmo-rounded-md plasmo-bg-white plasmo-py-1 plasmo-shadow-lg plasmo-ring-1 plasmo-ring-black/5 plasmo-text-sm">
+                  {filteredIssueTypes.length === 0 ? (
+                    <div className="plasmo-relative plasmo-cursor-default plasmo-select-none plasmo-py-2 plasmo-px-3 plasmo-text-gray-500">
+                      該当なし
+                    </div>
+                  ) : (
+                    filteredIssueTypes.map((type) => (
+                      <ComboboxOption
+                        key={type.id}
+                        value={String(type.id)}
+                        className="plasmo-group plasmo-relative plasmo-cursor-default plasmo-select-none plasmo-py-2 plasmo-pl-3 plasmo-pr-9 data-[focus]:plasmo-bg-blue-600 data-[focus]:plasmo-text-white plasmo-text-gray-900"
+                      >
+                        {type.name}
+                      </ComboboxOption>
+                    ))
+                  )}
+                </ComboboxOptions>
+              </div>
+            </Combobox>
           </div>
         )}
 
@@ -427,18 +497,38 @@ function IndexPopup() {
             <label className="plasmo-block plasmo-text-sm plasmo-font-medium plasmo-text-gray-700 plasmo-mb-1">
               担当者
             </label>
-            <select
-              value={selectedAssigneeId}
-              onChange={(e) => setSelectedAssigneeId(e.target.value)}
-              className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
-            >
-              <option value="">未設定</option>
-              {users.map((user) => (
-                <option key={user.id} value={String(user.id)}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
+            <Combobox value={selectedAssigneeId} onChange={setSelectedAssigneeId} onClose={() => setAssigneeQuery("")}>
+              <div className="plasmo-relative">
+                <ComboboxInput
+                  className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
+                  displayValue={(id: string) => users.find((u) => String(u.id) === id)?.name || ""}
+                  onChange={(e) => setAssigneeQuery(e.target.value)}
+                  placeholder="担当者を検索..."
+                />
+                <ComboboxButton className="plasmo-absolute plasmo-inset-y-0 plasmo-right-0 plasmo-flex plasmo-items-center plasmo-pr-3">
+                  <svg className="plasmo-h-4 plasmo-w-4 plasmo-text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </ComboboxButton>
+                <ComboboxOptions className="plasmo-absolute plasmo-z-10 plasmo-mt-1 plasmo-max-h-48 plasmo-w-full plasmo-overflow-auto plasmo-rounded-md plasmo-bg-white plasmo-py-1 plasmo-shadow-lg plasmo-ring-1 plasmo-ring-black/5 plasmo-text-sm">
+                  {filteredUsers.length === 0 ? (
+                    <div className="plasmo-relative plasmo-cursor-default plasmo-select-none plasmo-py-2 plasmo-px-3 plasmo-text-gray-500">
+                      該当なし
+                    </div>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <ComboboxOption
+                        key={user.id}
+                        value={String(user.id)}
+                        className="plasmo-group plasmo-relative plasmo-cursor-default plasmo-select-none plasmo-py-2 plasmo-pl-3 plasmo-pr-9 data-[focus]:plasmo-bg-blue-600 data-[focus]:plasmo-text-white plasmo-text-gray-900"
+                      >
+                        {user.name}
+                      </ComboboxOption>
+                    ))
+                  )}
+                </ComboboxOptions>
+              </div>
+            </Combobox>
           </div>
         )}
 
