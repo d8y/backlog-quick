@@ -310,18 +310,25 @@ function OptionsPage() {
                   <label className="plasmo-block plasmo-text-sm plasmo-font-medium plasmo-text-gray-700 plasmo-mb-1">
                     優先度
                   </label>
-                  <select
-                    value={selectedPriorityId}
-                    onChange={(e) => setSelectedPriorityId(e.target.value)}
-                    className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-shadow-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
-                  >
-                    <option value="">選択してください</option>
-                    {priorities.map((priority) => (
-                      <option key={priority.id} value={String(priority.id)}>
-                        {priority.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="plasmo-relative">
+                    <select
+                      value={selectedPriorityId}
+                      onChange={(e) => setSelectedPriorityId(e.target.value)}
+                      className="plasmo-w-full plasmo-appearance-none plasmo-px-3 plasmo-py-2 plasmo-pr-10 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-bg-white focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
+                    >
+                      <option value="">選択してください</option>
+                      {priorities.map((priority) => (
+                        <option key={priority.id} value={String(priority.id)}>
+                          {priority.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="plasmo-pointer-events-none plasmo-absolute plasmo-inset-y-0 plasmo-right-0 plasmo-flex plasmo-items-center plasmo-pr-3">
+                      <svg className="plasmo-h-5 plasmo-w-5 plasmo-text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               )}
 
