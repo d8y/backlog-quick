@@ -11,6 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@plasmohq/storage": "^1.13.0",
+    "fabric": "^7.1.0",
     "plasmo": "^0.90.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -29,8 +30,12 @@
     "permissions": [
       "activeTab",
       "storage",
-      "tabs"
+      "tabs",
+      "sidePanel"
     ],
+    "side_panel": {
+      "default_path": "sidepanel.html"
+    },
     "host_permissions": [
       "https://*.backlog.com/*"
     ],

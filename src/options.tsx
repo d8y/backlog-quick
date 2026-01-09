@@ -17,10 +17,13 @@ interface Defaults {
   assigneeId: string
 }
 
+type UIMode = "popup" | "sidepanel"
+
 function OptionsPage() {
   const [apiKey, setApiKey] = useStorage({ key: "apiKey", instance: storage })
   const [space, setSpace] = useStorage({ key: "space", instance: storage })
   const [defaults, setDefaults] = useStorage<Defaults>({ key: "defaults", instance: storage })
+  const [uiMode, setUiMode] = useStorage<UIMode>({ key: "uiMode", instance: storage })
 
   const [localApiKey, setLocalApiKey] = useState("")
   const [localSpace, setLocalSpace] = useState("")
@@ -214,6 +217,50 @@ function OptionsPage() {
                 </span>
               )}
             </div>
+          </div>
+        </div>
+
+        <div className="plasmo-bg-white plasmo-rounded-lg plasmo-shadow plasmo-p-6 plasmo-mb-6">
+          <h2 className="plasmo-text-lg plasmo-font-semibold plasmo-text-gray-800 plasmo-mb-4">
+            表示設定
+          </h2>
+
+          <div className="plasmo-space-y-3">
+            <label className="plasmo-flex plasmo-items-start plasmo-gap-3 plasmo-p-3 plasmo-border plasmo-rounded-lg plasmo-cursor-pointer hover:plasmo-bg-gray-50">
+              <input
+                type="radio"
+                name="uiMode"
+                value="popup"
+                checked={uiMode === "popup" || !uiMode}
+                onChange={() => setUiMode("popup")}
+                className="plasmo-mt-1"
+              />
+              <div>
+                <div className="plasmo-font-medium plasmo-text-gray-900">Popup（簡易版）</div>
+                <div className="plasmo-text-sm plasmo-text-gray-500">
+                  拡張機能アイコンをクリックするとポップアップが表示されます。
+                  シンプルな課題作成に最適です。
+                </div>
+              </div>
+            </label>
+
+            <label className="plasmo-flex plasmo-items-start plasmo-gap-3 plasmo-p-3 plasmo-border plasmo-rounded-lg plasmo-cursor-pointer hover:plasmo-bg-gray-50">
+              <input
+                type="radio"
+                name="uiMode"
+                value="sidepanel"
+                checked={uiMode === "sidepanel"}
+                onChange={() => setUiMode("sidepanel")}
+                className="plasmo-mt-1"
+              />
+              <div>
+                <div className="plasmo-font-medium plasmo-text-gray-900">Side Panel（フル機能版）</div>
+                <div className="plasmo-text-sm plasmo-text-gray-500">
+                  拡張機能アイコンをクリックするとサイドパネルが表示されます。
+                  画像編集機能が使え、ウィンドウを閉じても状態が維持されます。
+                </div>
+              </div>
+            </label>
           </div>
         </div>
 

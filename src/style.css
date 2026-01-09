@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#__plasmo {
+  height: 100%;
+}
+
 #plasmo-shadow-container {
   all: initial;
   box-sizing: border-box;

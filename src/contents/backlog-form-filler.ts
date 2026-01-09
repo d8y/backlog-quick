@@ -186,7 +186,7 @@ async function fillForm(): Promise<void> {
 
   // Show notification
   const notification = document.createElement("div")
-  notification.textContent = "Backlog Quick: フォームに値を自動入力しました"
+  notification.textContent = "フォームに値を自動入力しました"
   notification.style.cssText = `
     position: fixed;
     top: 20px;
