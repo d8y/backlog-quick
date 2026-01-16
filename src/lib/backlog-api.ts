@@ -8,13 +8,14 @@ import type {
   CreateIssueParams,
   BacklogAttachment,
 } from "~types"
+import type { IBacklogAPIClient } from "./backlog-api-interface"
 
 interface FetchOptions extends RequestInit {
   params?: Record<string, string | number | undefined>
   timeout?: number
 }
 
-export class BacklogAPIClient {
+export class BacklogAPIClient implements IBacklogAPIClient {
   private readonly baseURL: string
   private readonly apiKey: string
   private defaultTimeout: number = 30000

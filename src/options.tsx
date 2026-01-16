@@ -3,7 +3,7 @@ import { useStorage } from "@plasmohq/storage/hook"
 import { Storage } from "@plasmohq/storage"
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from "@headlessui/react"
 
-import { BacklogAPIClient } from "~lib/backlog-api"
+import { createBacklogAPIClient } from "~lib/backlog-api-factory"
 import type { BacklogProject, BacklogIssueType, BacklogPriority, BacklogUser } from "~types"
 
 import "~style.css"
@@ -94,7 +94,7 @@ function OptionsPage() {
     setTestMessage("")
 
     try {
-      const client = new BacklogAPIClient(localSpace, localApiKey)
+      const client = createBacklogAPIClient(localSpace, localApiKey)
       await client.testConnection()
       setTestStatus("success")
       setTestMessage("接続成功")
@@ -125,7 +125,7 @@ function OptionsPage() {
 
       setLoading(true)
       try {
-        const client = new BacklogAPIClient(space, apiKey)
+        const client = createBacklogAPIClient(space, apiKey)
         const [issueTypeList, userList] = await Promise.all([
           client.getIssueTypes(projectId),
           client.getUsers(projectId),

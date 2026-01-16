@@ -3,7 +3,7 @@ import { useStorage } from "@plasmohq/storage/hook"
 import { Storage } from "@plasmohq/storage"
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from "@headlessui/react"
 
-import { BacklogAPIClient } from "~lib/backlog-api"
+import { createBacklogAPIClient } from "~lib/backlog-api-factory"
 import type {
   BacklogProject,
   BacklogIssueType,
@@ -138,7 +138,7 @@ export function IssueForm({
       }
 
       try {
-        const client = new BacklogAPIClient(space, apiKey)
+        const client = createBacklogAPIClient(space, apiKey)
         const [projectList, priorityList] = await Promise.all([
           client.getProjects(),
           client.getPriorities(),
@@ -193,7 +193,7 @@ export function IssueForm({
       if (!projectId || !apiKey || !space) return
 
       try {
-        const client = new BacklogAPIClient(space, apiKey)
+        const client = createBacklogAPIClient(space, apiKey)
         const [issueTypeList, userList] = await Promise.all([
           client.getIssueTypes(projectId),
           client.getUsers(projectId),
@@ -230,7 +230,7 @@ export function IssueForm({
     setErrorMessage("")
 
     try {
-      const client = new BacklogAPIClient(space, apiKey)
+      const client = createBacklogAPIClient(space, apiKey)
 
       let attachmentId: string[] | undefined
 
