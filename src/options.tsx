@@ -74,6 +74,30 @@ function OptionsPage() {
     if (space) setLocalSpace(space)
   }, [apiKey, space])
 
+  // 既に設定がある場合は自動的にプロジェクト一覧を読み込む
+  useEffect(() => {
+    const loadExistingData = async () => {
+      if (!apiKey || !space || projects.length > 0) return
+
+      setLoading(true)
+      try {
+        const client = createBacklogAPIClient(space, apiKey)
+        const [projectList, priorityList] = await Promise.all([
+          client.getProjects(),
+          client.getPriorities(),
+        ])
+        setProjects(projectList.filter((p) => !p.archived))
+        setPriorities(priorityList)
+        setTestStatus("success")
+      } catch (error) {
+        console.error("Failed to load existing data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadExistingData()
+  }, [apiKey, space])
+
   useEffect(() => {
     if (defaults) {
       setSelectedProjectId(defaults.projectId || "")
@@ -114,10 +138,12 @@ function OptionsPage() {
   }, [localApiKey, localSpace, setApiKey, setSpace])
 
   const handleProjectChange = useCallback(
-    async (projectId: string) => {
+    async (projectId: string, restoreDefaults = false) => {
       setSelectedProjectId(projectId)
-      setSelectedIssueTypeId("")
-      setSelectedAssigneeId("")
+      if (!restoreDefaults) {
+        setSelectedIssueTypeId("")
+        setSelectedAssigneeId("")
+      }
       setIssueTypes([])
       setUsers([])
 
@@ -132,18 +158,30 @@ function OptionsPage() {
         ])
         setIssueTypes(issueTypeList)
         setUsers(userList)
+
+        // デフォルト値を復元
+        if (restoreDefaults && defaults) {
+          if (defaults.issueTypeId) {
+            const found = issueTypeList.find((t) => String(t.id) === defaults.issueTypeId)
+            if (found) setSelectedIssueTypeId(defaults.issueTypeId)
+          }
+          if (defaults.assigneeId) {
+            const found = userList.find((u) => String(u.id) === defaults.assigneeId)
+            if (found) setSelectedAssigneeId(defaults.assigneeId)
+          }
+        }
       } catch (error) {
         console.error("Failed to load project data:", error)
       } finally {
         setLoading(false)
       }
     },
-    [apiKey, space]
+    [apiKey, space, defaults]
   )
 
   useEffect(() => {
     if (defaults?.projectId && projects.length > 0 && apiKey && space) {
-      handleProjectChange(defaults.projectId)
+      handleProjectChange(defaults.projectId, true)
     }
   }, [defaults?.projectId, projects.length, apiKey, space])
 
