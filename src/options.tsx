@@ -236,18 +236,18 @@ function OptionsPage() {
               />
             </div>
 
-            <div className="plasmo-flex plasmo-items-center plasmo-gap-4">
+            <div className="plasmo-flex plasmo-items-start plasmo-gap-4">
               <button
                 onClick={handleTestConnection}
                 disabled={testStatus === "testing"}
-                className="plasmo-px-4 plasmo-py-2 plasmo-bg-blue-600 plasmo-text-white plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-blue-700 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
+                className="plasmo-shrink-0 plasmo-px-4 plasmo-py-2 plasmo-bg-blue-600 plasmo-text-white plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-blue-700 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
               >
                 {testStatus === "testing" ? "接続中..." : "接続テスト"}
               </button>
 
               {testMessage && (
                 <span
-                  className={`plasmo-text-sm ${
+                  className={`plasmo-text-sm plasmo-pt-2 ${
                     testStatus === "success" ? "plasmo-text-green-600" : "plasmo-text-red-600"
                   }`}
                 >
