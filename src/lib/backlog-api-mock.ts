@@ -27,7 +27,19 @@ export class MockBacklogAPIClient implements IBacklogAPIClient {
   private readonly space: string
   private readonly mockConfig: MockConfig
 
-  constructor(space: string, _apiKey: string, mockConfig: MockConfig = {}) {
+  constructor(space: string, apiKey: string, mockConfig: MockConfig = {}) {
+    // 本番と同様のバリデーション
+    if (!space || !apiKey) {
+      throw new Error("Backlog API credentials are required")
+    }
+
+    // URLの形式チェック（https:// や http:// で始まる場合はエラー）
+    if (space.startsWith("https://") || space.startsWith("http://")) {
+      throw new Error(
+        "Please enter the space URL in the format 'example.backlog.com'. Do not include 'https://'."
+      )
+    }
+
     this.space = space
     this.mockConfig = {
       delayMs: parseInt(process.env.PLASMO_PUBLIC_MOCK_DELAY || "500", 10),

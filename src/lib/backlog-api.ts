@@ -24,6 +24,14 @@ export class BacklogAPIClient implements IBacklogAPIClient {
     if (!space || !apiKey) {
       throw new Error("Backlog API credentials are required")
     }
+
+    // URLの形式チェック（https:// や http:// で始まる場合はエラー）
+    if (space.startsWith("https://") || space.startsWith("http://")) {
+      throw new Error(
+        "Please enter the space URL in the format 'example.backlog.com'. Do not include 'https://'."
+      )
+    }
+
     this.baseURL = `https://${space}/api/v2`
     this.apiKey = apiKey
   }
