@@ -8,13 +8,14 @@ import type {
   CreateIssueParams,
   BacklogAttachment,
 } from "~types"
+import type { IBacklogAPIClient } from "./backlog-api-interface"
 
 interface FetchOptions extends RequestInit {
   params?: Record<string, string | number | undefined>
   timeout?: number
 }
 
-export class BacklogAPIClient {
+export class BacklogAPIClient implements IBacklogAPIClient {
   private readonly baseURL: string
   private readonly apiKey: string
   private defaultTimeout: number = 30000
@@ -23,6 +24,14 @@ export class BacklogAPIClient {
     if (!space || !apiKey) {
       throw new Error("Backlog API credentials are required")
     }
+
+    // URLの形式チェック（https:// や http:// で始まる場合はエラー）
+    if (space.startsWith("https://") || space.startsWith("http://")) {
+      throw new Error(
+        "Please enter the space URL in the format 'example.backlog.com'. Do not include 'https://'."
+      )
+    }
+
     this.baseURL = `https://${space}/api/v2`
     this.apiKey = apiKey
   }

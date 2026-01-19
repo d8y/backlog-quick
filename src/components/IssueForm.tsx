@@ -3,7 +3,7 @@ import { useStorage } from "@plasmohq/storage/hook"
 import { Storage } from "@plasmohq/storage"
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from "@headlessui/react"
 
-import { BacklogAPIClient } from "~lib/backlog-api"
+import { createBacklogAPIClient } from "~lib/backlog-api-factory"
 import type {
   BacklogProject,
   BacklogIssueType,
@@ -138,7 +138,7 @@ export function IssueForm({
       }
 
       try {
-        const client = new BacklogAPIClient(space, apiKey)
+        const client = createBacklogAPIClient(space, apiKey)
         const [projectList, priorityList] = await Promise.all([
           client.getProjects(),
           client.getPriorities(),
@@ -158,7 +158,8 @@ export function IssueForm({
           const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
           if (tabs[0]) {
             const url = tabs[0].url || ""
-            setDescription(`URL: ${url}\n\n`)
+            const title = tabs[0].title || url
+            setDescription(`[${title}](${url})\n\n`)
           }
         }
       } catch (error) {
@@ -193,7 +194,7 @@ export function IssueForm({
       if (!projectId || !apiKey || !space) return
 
       try {
-        const client = new BacklogAPIClient(space, apiKey)
+        const client = createBacklogAPIClient(space, apiKey)
         const [issueTypeList, userList] = await Promise.all([
           client.getIssueTypes(projectId),
           client.getUsers(projectId),
@@ -230,15 +231,19 @@ export function IssueForm({
     setErrorMessage("")
 
     try {
-      const client = new BacklogAPIClient(space, apiKey)
+      const client = createBacklogAPIClient(space, apiKey)
 
       let attachmentId: string[] | undefined
+      let finalDescription = description.trim()
 
       if (screenshotDataUrl) {
         const blob = dataURLtoBlob(screenshotDataUrl)
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
         const attachment = await client.uploadAttachmentFromBlob(blob, `screenshot-${timestamp}.png`)
         attachmentId = [String(attachment.id)]
+        // 説明の先頭に画像参照を追加
+        const imageRef = `#image(${attachment.id})`
+        finalDescription = finalDescription ? `${imageRef}\n\n${finalDescription}` : imageRef
       }
 
       const params: CreateIssueParams = {
@@ -246,7 +251,7 @@ export function IssueForm({
         summary: title.trim(),
         issueTypeId: selectedIssueTypeId,
         priorityId: selectedPriorityId,
-        description: description.trim() || undefined,
+        description: finalDescription || undefined,
         assigneeId: selectedAssigneeId || undefined,
         attachmentId,
       }
