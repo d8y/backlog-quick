@@ -3,7 +3,7 @@ import { useStorage } from "@plasmohq/storage/hook"
 import { Storage } from "@plasmohq/storage"
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from "@headlessui/react"
 
-import { BacklogAPIClient } from "~lib/backlog-api"
+import { createBacklogAPIClient } from "~lib/backlog-api-factory"
 import type { BacklogProject, BacklogIssueType, BacklogPriority, BacklogUser } from "~types"
 
 import "~style.css"
@@ -74,6 +74,30 @@ function OptionsPage() {
     if (space) setLocalSpace(space)
   }, [apiKey, space])
 
+  // 既に設定がある場合は自動的にプロジェクト一覧を読み込む
+  useEffect(() => {
+    const loadExistingData = async () => {
+      if (!apiKey || !space || projects.length > 0) return
+
+      setLoading(true)
+      try {
+        const client = createBacklogAPIClient(space, apiKey)
+        const [projectList, priorityList] = await Promise.all([
+          client.getProjects(),
+          client.getPriorities(),
+        ])
+        setProjects(projectList.filter((p) => !p.archived))
+        setPriorities(priorityList)
+        setTestStatus("success")
+      } catch (error) {
+        console.error("Failed to load existing data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadExistingData()
+  }, [apiKey, space])
+
   useEffect(() => {
     if (defaults) {
       setSelectedProjectId(defaults.projectId || "")
@@ -94,7 +118,7 @@ function OptionsPage() {
     setTestMessage("")
 
     try {
-      const client = new BacklogAPIClient(localSpace, localApiKey)
+      const client = createBacklogAPIClient(localSpace, localApiKey)
       await client.testConnection()
       setTestStatus("success")
       setTestMessage("接続成功")
@@ -114,10 +138,12 @@ function OptionsPage() {
   }, [localApiKey, localSpace, setApiKey, setSpace])
 
   const handleProjectChange = useCallback(
-    async (projectId: string) => {
+    async (projectId: string, restoreDefaults = false) => {
       setSelectedProjectId(projectId)
-      setSelectedIssueTypeId("")
-      setSelectedAssigneeId("")
+      if (!restoreDefaults) {
+        setSelectedIssueTypeId("")
+        setSelectedAssigneeId("")
+      }
       setIssueTypes([])
       setUsers([])
 
@@ -125,25 +151,37 @@ function OptionsPage() {
 
       setLoading(true)
       try {
-        const client = new BacklogAPIClient(space, apiKey)
+        const client = createBacklogAPIClient(space, apiKey)
         const [issueTypeList, userList] = await Promise.all([
           client.getIssueTypes(projectId),
           client.getUsers(projectId),
         ])
         setIssueTypes(issueTypeList)
         setUsers(userList)
+
+        // デフォルト値を復元
+        if (restoreDefaults && defaults) {
+          if (defaults.issueTypeId) {
+            const found = issueTypeList.find((t) => String(t.id) === defaults.issueTypeId)
+            if (found) setSelectedIssueTypeId(defaults.issueTypeId)
+          }
+          if (defaults.assigneeId) {
+            const found = userList.find((u) => String(u.id) === defaults.assigneeId)
+            if (found) setSelectedAssigneeId(defaults.assigneeId)
+          }
+        }
       } catch (error) {
         console.error("Failed to load project data:", error)
       } finally {
         setLoading(false)
       }
     },
-    [apiKey, space]
+    [apiKey, space, defaults]
   )
 
   useEffect(() => {
     if (defaults?.projectId && projects.length > 0 && apiKey && space) {
-      handleProjectChange(defaults.projectId)
+      handleProjectChange(defaults.projectId, true)
     }
   }, [defaults?.projectId, projects.length, apiKey, space])
 
@@ -198,18 +236,18 @@ function OptionsPage() {
               />
             </div>
 
-            <div className="plasmo-flex plasmo-items-center plasmo-gap-4">
+            <div className="plasmo-flex plasmo-items-start plasmo-gap-4">
               <button
                 onClick={handleTestConnection}
                 disabled={testStatus === "testing"}
-                className="plasmo-px-4 plasmo-py-2 plasmo-bg-blue-600 plasmo-text-white plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-blue-700 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
+                className="plasmo-shrink-0 plasmo-px-4 plasmo-py-2 plasmo-bg-blue-600 plasmo-text-white plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-blue-700 disabled:plasmo-opacity-50 disabled:plasmo-cursor-not-allowed"
               >
                 {testStatus === "testing" ? "接続中..." : "接続テスト"}
               </button>
 
               {testMessage && (
                 <span
-                  className={`plasmo-text-sm ${
+                  className={`plasmo-text-sm plasmo-pt-2 ${
                     testStatus === "success" ? "plasmo-text-green-600" : "plasmo-text-red-600"
                   }`}
                 >
