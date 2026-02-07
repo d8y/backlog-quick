@@ -3,6 +3,9 @@
 ## [v1.1.2](https://github.com/d8y/backlog-quick/compare/v1.1.1...v1.1.2) - 2026-02-07
 - fix: pass apiKey in URL params for all requests by @d8y in https://github.com/d8y/backlog-quick/pull/11
 
+## [v1.1.2](https://github.com/d8y/backlog-quick/compare/v1.1.1...v1.1.2) - 2026-02-07
+- fix: pass apiKey in URL params for all requests by @d8y in https://github.com/d8y/backlog-quick/pull/11
+
 ## [v1.1.1](https://github.com/d8y/backlog-quick/compare/v1.1.0...v1.1.1) - 2026-01-19
 - update: editable image on side panel by @d8y in https://github.com/d8y/backlog-quick/pull/1
 - update README.md by @d8y in https://github.com/d8y/backlog-quick/pull/2
