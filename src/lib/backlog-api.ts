@@ -72,11 +72,8 @@ export class BacklogAPIClient implements IBacklogAPIClient {
     const url = new URL(`${this.baseURL}${endpoint}`)
     const method = (fetchOptions.method || "GET").toUpperCase()
 
-    // For GET requests, API key must be in URL params (Backlog API requirement)
-    // For POST/PUT/PATCH, API key is added to request body for security
-    if (method === "GET") {
-      url.searchParams.append("apiKey", this.apiKey)
-    }
+    // Backlog API requires apiKey in URL params for all requests
+    url.searchParams.append("apiKey", this.apiKey)
 
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -166,9 +163,6 @@ export class BacklogAPIClient implements IBacklogAPIClient {
   async createIssue(params: CreateIssueParams): Promise<BacklogIssue> {
     const formData = new URLSearchParams()
 
-    // Add API key to request body instead of URL for security
-    formData.append("apiKey", this.apiKey)
-
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
         if (Array.isArray(value)) {
@@ -195,10 +189,9 @@ export class BacklogAPIClient implements IBacklogAPIClient {
     const formData = new FormData()
     const file = new File([blob], filename, { type: blob.type || "image/png" })
     formData.append("file", file)
-    // Add API key to request body instead of URL for security
-    formData.append("apiKey", this.apiKey)
 
     const url = new URL(`${this.baseURL}/space/attachment`)
+    url.searchParams.append("apiKey", this.apiKey)
 
     try {
       const response = await this.fetchWithTimeout(url.toString(), {
