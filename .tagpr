@@ -1,9 +1,6 @@
 # tagpr configuration
 # https://github.com/Songmu/tagpr
-
-# バージョンを管理するファイル（package.jsonのversionフィールドを自動更新）
-versionFile = "package.json"
 [tagpr]
 	vPrefix = true
 	releaseBranch = main
-	versionFile = -
+	versionFile = package.json
