@@ -241,8 +241,11 @@ export function IssueForm({
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
         const attachment = await client.uploadAttachmentFromBlob(blob, `screenshot-${timestamp}.png`)
         attachmentId = [String(attachment.id)]
-        // 説明の先頭に画像参照を追加
-        const imageRef = `#image(${attachment.id})`
+        // 説明の先頭に画像参照を追加（プロジェクトのテキスト整形ルールに応じて記法を切り替え）
+        const selectedProject = projects.find((p) => String(p.id) === selectedProjectId)
+        const imageRef = selectedProject?.textFormattingRule === "markdown"
+          ? `![image][${attachment.name}]`
+          : `#image(${attachment.name})`
         finalDescription = finalDescription ? `${imageRef}\n\n${finalDescription}` : imageRef
       }
 
@@ -276,6 +279,7 @@ export function IssueForm({
     screenshotDataUrl,
     apiKey,
     space,
+    projects,
     onSuccess,
   ])
 
