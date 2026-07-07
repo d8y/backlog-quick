@@ -73,6 +73,8 @@ export function IssueForm({
 
   const [title, setTitle] = useState(initialValues?.title || "")
   const [description, setDescription] = useState(initialValues?.description || "")
+  // 現在のタブから生成したURLプレフィックス（課題種別テンプレート反映時に先頭へ付与する）
+  const [urlPrefix, setUrlPrefix] = useState("")
   const [selectedProjectId, setSelectedProjectId] = useState(initialValues?.projectId || "")
   const [selectedIssueTypeId, setSelectedIssueTypeId] = useState(initialValues?.issueTypeId || "")
   const [selectedPriorityId, setSelectedPriorityId] = useState(initialValues?.priorityId || "")
@@ -154,14 +156,19 @@ export function IssueForm({
           setSelectedPriorityId(priorityToSet)
         }
 
-        // 初期値がない場合のみ URL を設定
+        // 現在のタブからURLプレフィックスを生成（テンプレート反映時に再利用する）
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+        let prefix = ""
+        if (tabs[0]) {
+          const url = tabs[0].url || ""
+          const tabTitle = tabs[0].title || url
+          prefix = `[${tabTitle}](${url})\n\n`
+        }
+        setUrlPrefix(prefix)
+
+        // 初期値がない場合のみ URL を初期本文として設定
         if (!initialValues?.description) {
-          const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
-          if (tabs[0]) {
-            const url = tabs[0].url || ""
-            const title = tabs[0].title || url
-            setDescription(`[${title}](${url})\n\n`)
-          }
+          setDescription(prefix)
         }
       } catch (error) {
         console.error("Failed to initialize:", error)
@@ -220,6 +227,21 @@ export function IssueForm({
       }
     },
     [apiKey, space, defaults, initialValues]
+  )
+
+  // 課題種別を選択したら、その種別のテンプレート本文を反映する。
+  // URLプレフィックス（先頭）＋テンプレート本文の順で本文を組み立てる。
+  const handleIssueTypeChange = useCallback(
+    (issueTypeId: string) => {
+      setSelectedIssueTypeId(issueTypeId)
+
+      const issueType = issueTypes.find((t) => String(t.id) === issueTypeId)
+      const template = issueType?.templateDescription
+      if (template) {
+        setDescription(urlPrefix ? `${urlPrefix}${template}` : template)
+      }
+    },
+    [issueTypes, urlPrefix]
   )
 
   // 作成した課題URLをクリップボードにコピー
@@ -644,7 +666,7 @@ export function IssueForm({
             <label className="plasmo-block plasmo-text-sm plasmo-font-medium plasmo-text-gray-700 plasmo-mb-1">
               課題種別 *
             </label>
-            <Combobox value={selectedIssueTypeId} onChange={setSelectedIssueTypeId} onClose={() => setIssueTypeQuery("")}>
+            <Combobox value={selectedIssueTypeId} onChange={handleIssueTypeChange} onClose={() => setIssueTypeQuery("")}>
               <div className="plasmo-relative">
                 <ComboboxInput
                   className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"

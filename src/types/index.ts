@@ -28,6 +28,9 @@ export interface BacklogIssueType {
   name: string
   color: string
   displayOrder: number
+  // 課題種別に設定されたテンプレート（未設定時は null）
+  templateSummary?: string | null
+  templateDescription?: string | null
 }
 
 export interface BacklogPriority {
