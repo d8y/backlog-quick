@@ -1,7 +1,7 @@
 {
   "name": "backlog-quick",
   "displayName": "Backlog Quick",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Backlog課題をワンクリックで作成",
   "scripts": {
     "dev": "plasmo dev",
