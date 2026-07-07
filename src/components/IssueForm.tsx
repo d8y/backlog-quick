@@ -74,7 +74,8 @@ export function IssueForm({
   const [title, setTitle] = useState(initialValues?.title || "")
   const [description, setDescription] = useState(initialValues?.description || "")
   // 現在のタブから生成したURLプレフィックス（課題種別テンプレート反映時に先頭へ付与する）
-  const [urlPrefix, setUrlPrefix] = useState("")
+  // 非同期処理中の stale closure を避けるため ref で保持する
+  const urlPrefixRef = useRef("")
   const [selectedProjectId, setSelectedProjectId] = useState(initialValues?.projectId || "")
   const [selectedIssueTypeId, setSelectedIssueTypeId] = useState(initialValues?.issueTypeId || "")
   const [selectedPriorityId, setSelectedPriorityId] = useState(initialValues?.priorityId || "")
@@ -164,7 +165,7 @@ export function IssueForm({
           const tabTitle = tabs[0].title || url
           prefix = `[${tabTitle}](${url})\n\n`
         }
-        setUrlPrefix(prefix)
+        urlPrefixRef.current = prefix
 
         // 初期値がない場合のみ URL を初期本文として設定
         if (!initialValues?.description) {
@@ -216,7 +217,22 @@ export function IssueForm({
 
         if (issueTypeToRestore) {
           const found = issueTypeList.find((t) => String(t.id) === issueTypeToRestore)
-          if (found) setSelectedIssueTypeId(issueTypeToRestore)
+          if (found) {
+            setSelectedIssueTypeId(issueTypeToRestore)
+            // 初回表示/プロジェクト切替でデフォルト種別が復元された場合も、
+            // 本文が未編集（空 or URLのみ）ならテンプレートを反映する
+            const template = found.templateDescription
+            if (template) {
+              const prefix = urlPrefixRef.current
+              setDescription((prev) =>
+                prev.trim() === "" || prev === prefix
+                  ? prefix
+                    ? `${prefix}${template}`
+                    : template
+                  : prev
+              )
+            }
+          }
         }
         if (assigneeToRestore) {
           const found = userList.find((u) => String(u.id) === assigneeToRestore)
@@ -238,10 +254,11 @@ export function IssueForm({
       const issueType = issueTypes.find((t) => String(t.id) === issueTypeId)
       const template = issueType?.templateDescription
       if (template) {
-        setDescription(urlPrefix ? `${urlPrefix}${template}` : template)
+        const prefix = urlPrefixRef.current
+        setDescription(prefix ? `${prefix}${template}` : template)
       }
     },
-    [issueTypes, urlPrefix]
+    [issueTypes]
   )
 
   // 作成した課題URLをクリップボードにコピー
