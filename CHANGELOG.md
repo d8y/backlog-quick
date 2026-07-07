@@ -1,5 +1,7 @@
 # Changelog
 
+## [v1.1.4](https://github.com/d8y/backlog-quick/compare/v1.1.3...v1.1.4) - 2026-07-07
+
 ## [v1.1.3](https://github.com/d8y/backlog-quick/compare/v1.1.2...v1.1.3) - 2026-02-25
 - fix: use attachment filename by @d8y in https://github.com/d8y/backlog-quick/pull/14
 - fix: tagpr configuration update and by @d8y in https://github.com/d8y/backlog-quick/pull/16
