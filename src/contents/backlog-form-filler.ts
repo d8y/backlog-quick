@@ -116,7 +116,7 @@ interface FormData {
 async function fillForm(): Promise<void> {
   // Read form data from chrome.storage.local
   const result = await chrome.storage.local.get("backlogQuickFormData")
-  const formData: FormData | undefined = result.backlogQuickFormData
+  const formData = result.backlogQuickFormData as FormData | undefined
 
   if (!formData) {
     return

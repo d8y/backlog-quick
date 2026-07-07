@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useStorage } from "@plasmohq/storage/hook"
 import { Storage } from "@plasmohq/storage"
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from "@headlessui/react"
@@ -319,6 +319,126 @@ export function IssueForm({
     onSuccess,
   ])
 
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
+
+  const handleDescriptionKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const textarea = e.currentTarget
+      const { selectionStart, selectionEnd, value } = textarea
+
+      const updateValue = (newValue: string, newStart: number, newEnd: number) => {
+        setDescription(newValue)
+        // setDescriptionの後にカーソル位置を復元
+        requestAnimationFrame(() => {
+          textarea.selectionStart = newStart
+          textarea.selectionEnd = newEnd
+        })
+      }
+
+      // Ctrl+B: 太字
+      if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+        e.preventDefault()
+        const selected = value.slice(selectionStart, selectionEnd)
+        if (selected) {
+          const newValue = value.slice(0, selectionStart) + `**${selected}**` + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + 2, selectionEnd + 2)
+        } else {
+          const newValue = value.slice(0, selectionStart) + "****" + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + 2, selectionStart + 2)
+        }
+        return
+      }
+
+      // Ctrl+I: 斜体
+      if ((e.ctrlKey || e.metaKey) && e.key === "i") {
+        e.preventDefault()
+        const selected = value.slice(selectionStart, selectionEnd)
+        if (selected) {
+          const newValue = value.slice(0, selectionStart) + `*${selected}*` + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + 1, selectionEnd + 1)
+        } else {
+          const newValue = value.slice(0, selectionStart) + "**" + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + 1, selectionStart + 1)
+        }
+        return
+      }
+
+      // Ctrl+K: リンク
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault()
+        const selected = value.slice(selectionStart, selectionEnd)
+        if (selected) {
+          const newValue = value.slice(0, selectionStart) + `[${selected}](url)` + value.slice(selectionEnd)
+          updateValue(newValue, selectionEnd + 2, selectionEnd + 5)
+        } else {
+          const newValue = value.slice(0, selectionStart) + "[](url)" + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + 1, selectionStart + 1)
+        }
+        return
+      }
+
+      // Tab: インデント
+      if (e.key === "Tab") {
+        e.preventDefault()
+        if (e.shiftKey) {
+          // Shift+Tab: インデント除去
+          const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1
+          const lineText = value.slice(lineStart, selectionEnd)
+          const dedented = lineText.replace(/^( {1,4}|\t)/gm, "")
+          const diff = lineText.length - dedented.length
+          const newValue = value.slice(0, lineStart) + dedented + value.slice(selectionEnd)
+          updateValue(newValue, Math.max(lineStart, selectionStart - diff), selectionEnd - diff)
+        } else {
+          const newValue = value.slice(0, selectionStart) + "    " + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + 4, selectionStart + 4)
+        }
+        return
+      }
+
+      // Enter: リスト自動継続
+      if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1
+        const currentLine = value.slice(lineStart, selectionStart)
+
+        // 箇条書きリスト: "- " or "* " or "+ "
+        const bulletMatch = currentLine.match(/^(\s*)([-*+])\s/)
+        if (bulletMatch) {
+          // 空のリスト項目なら、リストを終了
+          if (currentLine.trim() === bulletMatch[2]) {
+            const newValue = value.slice(0, lineStart) + "\n" + value.slice(selectionEnd)
+            e.preventDefault()
+            updateValue(newValue, lineStart + 1, lineStart + 1)
+            return
+          }
+          e.preventDefault()
+          const prefix = `\n${bulletMatch[1]}${bulletMatch[2]} `
+          const newValue = value.slice(0, selectionStart) + prefix + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + prefix.length, selectionStart + prefix.length)
+          return
+        }
+
+        // 番号付きリスト: "1. " etc.
+        const numberedMatch = currentLine.match(/^(\s*)(\d+)\.\s/)
+        if (numberedMatch) {
+          // 空のリスト項目なら、リストを終了
+          if (currentLine.trim() === `${numberedMatch[2]}.`) {
+            const newValue = value.slice(0, lineStart) + "\n" + value.slice(selectionEnd)
+            e.preventDefault()
+            updateValue(newValue, lineStart + 1, lineStart + 1)
+            return
+          }
+          e.preventDefault()
+          const nextNum = parseInt(numberedMatch[2]) + 1
+          const prefix = `\n${numberedMatch[1]}${nextNum}. `
+          const newValue = value.slice(0, selectionStart) + prefix + value.slice(selectionEnd)
+          updateValue(newValue, selectionStart + prefix.length, selectionStart + prefix.length)
+          return
+        }
+      }
+    },
+    [setDescription]
+  )
+
   const resetForm = useCallback(() => {
     setSubmitStatus("idle")
     setTitle("")
@@ -446,10 +566,12 @@ export function IssueForm({
             説明
           </label>
           <textarea
+            ref={descriptionRef}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={handleDescriptionKeyDown}
             rows={3}
-            className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
+            className="plasmo-w-full plasmo-px-3 plasmo-py-2 plasmo-border plasmo-border-gray-300 plasmo-rounded-md plasmo-text-sm plasmo-font-mono focus:plasmo-outline-none focus:plasmo-ring-2 focus:plasmo-ring-blue-500 focus:plasmo-border-blue-500"
           />
         </div>
 
