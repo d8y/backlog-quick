@@ -87,6 +87,7 @@ export function IssueForm({
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle")
   const [errorMessage, setErrorMessage] = useState("")
   const [createdIssueUrl, setCreatedIssueUrl] = useState("")
+  const [urlCopied, setUrlCopied] = useState(false)
 
   const [projectQuery, setProjectQuery] = useState("")
   const [issueTypeQuery, setIssueTypeQuery] = useState("")
@@ -221,6 +222,17 @@ export function IssueForm({
     [apiKey, space, defaults, initialValues]
   )
 
+  // 作成した課題URLをクリップボードにコピー
+  const copyUrlToClipboard = useCallback(async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setUrlCopied(true)
+    } catch (error) {
+      console.error("Failed to copy URL:", error)
+      setUrlCopied(false)
+    }
+  }, [])
+
   const handleSubmit = useCallback(async () => {
     if (!title.trim() || !selectedProjectId || !selectedIssueTypeId || !selectedPriorityId) {
       setErrorMessage("必須項目を入力してください")
@@ -264,7 +276,10 @@ export function IssueForm({
 
       setCreatedIssueUrl(issueUrl)
       setSubmitStatus("success")
-      onSuccess?.()
+      // 成功画面を表示したまま、URLを自動でクリップボードへコピーする。
+      // ここで onSuccess (ウィンドウを閉じる) を呼ぶと成功画面が見えず、
+      // コピーも完了前に閉じてしまうため、あえて呼ばない。
+      void copyUrlToClipboard(issueUrl)
     } catch (error) {
       setSubmitStatus("error")
       setErrorMessage(error instanceof Error ? error.message : "課題の作成に失敗しました")
@@ -280,7 +295,7 @@ export function IssueForm({
     apiKey,
     space,
     projects,
-    onSuccess,
+    copyUrlToClipboard,
   ])
 
   const openOptions = () => {
@@ -443,6 +458,7 @@ export function IssueForm({
     setSubmitStatus("idle")
     setTitle("")
     setCreatedIssueUrl("")
+    setUrlCopied(false)
     onScreenshotChange(null)
   }, [onScreenshotChange])
 
@@ -481,10 +497,17 @@ export function IssueForm({
           href={createdIssueUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="plasmo-block plasmo-text-blue-600 hover:plasmo-text-blue-800 plasmo-underline plasmo-mb-4 plasmo-break-all plasmo-text-center"
+          className="plasmo-block plasmo-text-blue-600 hover:plasmo-text-blue-800 plasmo-underline plasmo-mb-2 plasmo-break-all plasmo-text-center"
         >
           {createdIssueUrl}
         </a>
+        <button
+          onClick={() => copyUrlToClipboard(createdIssueUrl)}
+          className="plasmo-mb-4 plasmo-px-4 plasmo-py-2 plasmo-bg-blue-600 plasmo-text-white plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-blue-700 plasmo-flex plasmo-items-center plasmo-gap-2"
+        >
+          <span>{urlCopied ? "✓" : "📋"}</span>
+          {urlCopied ? "コピーしました" : "リンクをコピー"}
+        </button>
         <button
           onClick={resetForm}
           className="plasmo-px-4 plasmo-py-2 plasmo-bg-gray-200 plasmo-text-gray-700 plasmo-rounded-md plasmo-font-medium hover:plasmo-bg-gray-300"

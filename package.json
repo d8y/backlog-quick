@@ -31,7 +31,8 @@
       "activeTab",
       "storage",
       "tabs",
-      "sidePanel"
+      "sidePanel",
+      "clipboardWrite"
     ],
     "side_panel": {
       "default_path": "sidepanel.html"
